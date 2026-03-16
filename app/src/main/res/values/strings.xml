@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">AniDate</string>
+    <string name="menu_account">Аккаунт</string>
+    <string name="menu_events">Уведомления</string>
+    <string name="menu_collections">Коллекции</string>
+    <string name="menu_settings">Настройки</string>
+</resources>
