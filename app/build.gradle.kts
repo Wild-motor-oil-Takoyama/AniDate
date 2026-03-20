@@ -48,6 +48,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.foundation)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -57,4 +58,7 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation("com.google.code.gson:gson:2.13.2")
     implementation("androidx.compose.material3:material3:1.2.0")
+    implementation("io.coil-kt:coil-compose:2.6.0") // Для загрузки изображений
+    implementation("androidx.activity:activity-ktx:1.8.2") // Для ActivityResultRegistry (нужно для выбора фото)
+    implementation("com.google.code.gson:gson:2.10.1")
 }

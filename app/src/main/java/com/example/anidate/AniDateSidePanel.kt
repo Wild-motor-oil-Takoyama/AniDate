@@ -27,6 +27,8 @@ import androidx.compose.ui.unit.sp
 fun AniDateSideLayout(
     currentScreen: String,
     onNavigateToEvents: () -> Unit,
+    onNavigateToCollections: () -> Unit,
+    onNavigateToWorks: () -> Unit,
     onBack: () -> Unit,
     content: @Composable () -> Unit
 ) {
@@ -53,10 +55,8 @@ fun AniDateSideLayout(
                 }
             }
     ) {
-        // 1. ОСНОВНОЙ КОНТЕНТ (Нижний слой)
         content()
 
-        // 2. БОКОВАЯ ПАНЕЛЬ (Верхний слой)
         Column(
             modifier = Modifier
                 .width(panelWidth)
@@ -66,6 +66,7 @@ fun AniDateSideLayout(
                 .padding(vertical = 40.dp, horizontal = 12.dp),
             horizontalAlignment = Alignment.Start
         ) {
+            // Аккаунт
             ExpandableMenuItem(
                 icon = Icons.Default.Person,
                 label = stringResource(id = R.string.menu_account),
@@ -75,25 +76,56 @@ fun AniDateSideLayout(
 
             Spacer(modifier = Modifier.height(20.dp))
 
+            // Уведомления (Фиолетовая)
             ExpandableMenuItem(
-                icon = if (currentScreen == "main") Icons.Default.DateRange else Icons.Default.ArrowBack,
-                label = if (currentScreen == "main") stringResource(id = R.string.menu_events) else "Назад",
+                icon = if (currentScreen == "events") Icons.Default.ArrowBack else Icons.Default.DateRange,
+                label = if (currentScreen == "events") "Назад" else stringResource(id = R.string.menu_events),
                 color = colorResource(id = R.color.menu_purple),
                 isExpanded = isExpanded,
                 onClick = {
-                    if (currentScreen == "main") onNavigateToEvents() else onBack()
+                    if (currentScreen == "events") onBack() else onNavigateToEvents()
                 }
             )
 
             Spacer(modifier = Modifier.height(20.dp))
-            ExpandableMenuItem(Icons.Default.Favorite, stringResource(id = R.string.menu_collections), colorResource(id = R.color.menu_green), isExpanded)
+
+            // Коллекции (Зеленая) — ТУТ ИЗМЕНЕНИЯ
+            ExpandableMenuItem(
+                icon = if (currentScreen == "collections") Icons.Default.ArrowBack else Icons.Default.Favorite,
+                label = if (currentScreen == "collections") "Назад" else stringResource(id = R.string.menu_collections),
+                color = colorResource(id = R.color.menu_green),
+                isExpanded = isExpanded,
+                onClick = {
+                    if (currentScreen == "collections") onBack() else onNavigateToCollections()
+                }
+            )
+
             Spacer(modifier = Modifier.height(20.dp))
-            ExpandableMenuItem(Icons.Default.Settings, stringResource(id = R.string.menu_settings), colorResource(id = R.color.menu_blue), isExpanded)
+
+            // Настройки
+            ExpandableMenuItem(
+                // Меняем иконку на список (List — стандартная, не даст ошибок)
+                icon = if (currentScreen == "works") Icons.Default.ArrowBack else Icons.Default.List,
+
+                // Меняем текст
+                label = if (currentScreen == "works") "Назад" else "Произведения",
+
+                color = colorResource(id = R.color.menu_blue),
+                isExpanded = isExpanded,
+
+                // ДОБАВЛЯЕМ ДЕЙСТВИЕ:
+                onClick = {
+                    if (currentScreen == "works") {
+                        onBack()
+                    } else {
+                        onNavigateToWorks() // Этот вызов активирует переход в MainActivity
+                    }
+                }
+            )
         }
     }
 }
 
-// ЭТУ ФУНКЦИЮ МЫ ДОБАВИЛИ СЮДА, ЧТОБЫ ОШИБКИ ИСЧЕЗЛИ:
 @Composable
 fun ExpandableMenuItem(
     icon: ImageVector,
@@ -115,25 +147,15 @@ fun ExpandableMenuItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = if (isExpanded) Arrangement.Start else Arrangement.Center
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(24.dp)
-            )
-
+            Icon(imageVector = icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
             AnimatedVisibility(
                 visible = isExpanded,
                 enter = slideInHorizontally { -40 } + fadeIn(),
                 exit = slideOutHorizontally { -40 } + fadeOut()
             ) {
                 Text(
-                    text = label,
-                    color = Color.White,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(start = 15.dp),
-                    maxLines = 1
+                    text = label, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(start = 15.dp), maxLines = 1
                 )
             }
         }

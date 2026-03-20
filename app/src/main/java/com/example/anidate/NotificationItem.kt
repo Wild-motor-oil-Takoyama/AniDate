@@ -21,11 +21,15 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
-data class AniDateEvent(val title: String, val date: String, val time: String, val type: String)
-data class Particle(val vx: Float, val vy: Float, val color: Color)
+// Уникальное имя для частиц уведомлений
+data class NotificationParticle(val vx: Float, val vy: Float, val color: Color)
 
-fun formatDisplayDate(raw: String): String = if (raw.length == 8) "${raw.substring(0, 2)}.${raw.substring(2, 4)}.${raw.substring(4)}" else raw
-fun formatDisplayTime(raw: String): String = if (raw.length == 4) "${raw.substring(0, 2)}:${raw.substring(2)}" else raw
+// Оставляем как есть, так как это используется списком
+data class AniDateEvent(val title: String, val date: String, val time: String, val type: String)
+
+// Уникальные имена функций форматирования
+fun formatNotificationDate(raw: String): String = if (raw.length == 8) "${raw.substring(0, 2)}.${raw.substring(2, 4)}.${raw.substring(4)}" else raw
+fun formatNotificationTime(raw: String): String = if (raw.length == 4) "${raw.substring(0, 2)}:${raw.substring(2)}" else raw
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,10 +39,27 @@ fun NotificationItem(event: AniDateEvent, onEdit: () -> Unit, onDelete: () -> Un
     var isPressed by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
-    val scale by animateFloatAsState(if (isPressed) 0.95f else 1f, spring(0.5f, Spring.StiffnessLow), label = "")
-    val shakeAnim by animateFloatAsState(if (isExploding) 5f else 0f, repeatable(6, tween(40, easing = LinearEasing), RepeatMode.Reverse), label = "")
+    // --- ПРУЖИННАЯ АНИМАЦИЯ (как в CollectionItem) ---
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.94f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "NotificationScale"
+    )
 
-    val dismissState = rememberSwipeToDismissBoxState(confirmValueChange = { if (it == SwipeToDismissBoxValue.EndToStart) { showDeleteDialog = true; false } else false })
+    val shakeAnim by animateFloatAsState(
+        targetValue = if (isExploding) 6f else 0f,
+        animationSpec = repeatable(8, tween(40, easing = LinearEasing), RepeatMode.Reverse),
+        label = "NotificationShake"
+    )
+
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = {
+            if (it == SwipeToDismissBoxValue.EndToStart) { showDeleteDialog = true; false } else false
+        }
+    )
 
     if (showDeleteDialog) {
         AlertDialog(
@@ -57,17 +78,28 @@ fun NotificationItem(event: AniDateEvent, onEdit: () -> Unit, onDelete: () -> Un
 
     Box(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
         if (isExploding) {
-            ExplosionEffect(colorResource(id = R.color.menu_purple))
+            NotificationExplosionEffect(colorResource(id = R.color.menu_purple))
         } else {
             SwipeToDismissBox(
                 state = dismissState,
                 enableDismissFromStartToEnd = false,
-                backgroundContent = {},
+                backgroundContent = { Box(Modifier.fillMaxSize()) },
                 content = {
                     Surface(
                         modifier = Modifier.fillMaxWidth().height(100.dp)
                             .graphicsLayer(scaleX = scale, scaleY = scale, translationX = shakeAnim)
-                            .pointerInput(Unit) { detectTapGestures(onDoubleTap = { scope.launch { isPressed = true; onEdit(); delay(100); isPressed = false } }) },
+                            .pointerInput(Unit) {
+                                detectTapGestures(
+                                    onDoubleTap = {
+                                        scope.launch {
+                                            isPressed = true
+                                            delay(150) // Задержка, чтобы увидеть пружинный эффект
+                                            onEdit()
+                                            isPressed = false
+                                        }
+                                    }
+                                )
+                            },
                         shape = RoundedCornerShape(16.dp),
                         color = colorResource(id = R.color.panel_dark)
                     ) {
@@ -75,9 +107,9 @@ fun NotificationItem(event: AniDateEvent, onEdit: () -> Unit, onDelete: () -> Un
                             Text(event.type.uppercase(), color = colorResource(id = R.color.menu_purple).copy(0.7f), fontSize = 10.sp, fontWeight = FontWeight.Bold)
                             Text(event.title, color = colorResource(id = R.color.menu_purple), fontWeight = FontWeight.Bold, fontSize = 18.sp)
                             Row(modifier = Modifier.padding(top = 4.dp)) {
-                                Text(text = formatDisplayDate(event.date), color = Color.Gray, fontSize = 12.sp)
+                                Text(text = formatNotificationDate(event.date), color = Color.Gray, fontSize = 12.sp)
                                 Spacer(modifier = Modifier.width(12.dp))
-                                Text(text = formatDisplayTime(event.time), color = Color.Gray, fontSize = 12.sp)
+                                Text(text = formatNotificationTime(event.time), color = Color.Gray, fontSize = 12.sp)
                             }
                         }
                     }
@@ -87,9 +119,10 @@ fun NotificationItem(event: AniDateEvent, onEdit: () -> Unit, onDelete: () -> Un
     }
 }
 
+// Уникальное имя функции эффекта
 @Composable
-fun ExplosionEffect(color: Color) {
-    val particles = remember { List(45) { Particle(Random.nextFloat() * 40 - 20, Random.nextFloat() * 40 - 20, color) } }
+fun NotificationExplosionEffect(color: Color) {
+    val particles = remember { List(45) { NotificationParticle(Random.nextFloat() * 40 - 20, Random.nextFloat() * 40 - 20, color) } }
     val anim = remember { Animatable(0f) }
     LaunchedEffect(Unit) { anim.animateTo(1f, tween(1200, easing = FastOutSlowInEasing)) }
     Canvas(modifier = Modifier.fillMaxWidth().height(100.dp)) {

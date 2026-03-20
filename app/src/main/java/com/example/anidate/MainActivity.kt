@@ -25,21 +25,19 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            // Главное состояние навигации
             var currentScreen by remember { mutableStateOf("main") }
 
-            // Общая подложка, чтобы не было белых вспышек
             Surface(
                 modifier = Modifier.fillMaxSize(),
                 color = colorResource(id = R.color.background_dark)
             ) {
-                // Вызываем твою новую оболочку из файла AniDateSidePanel.kt
                 AniDateSideLayout(
                     currentScreen = currentScreen,
                     onNavigateToEvents = { currentScreen = "events" },
+                    onNavigateToCollections = { currentScreen = "collections" }, // НОВОЕ
+                    onNavigateToWorks = { currentScreen = "works" },
                     onBack = { currentScreen = "main" }
                 ) {
-                    // Внутри оболочки меняем только основной контент
                     Crossfade(
                         targetState = currentScreen,
                         animationSpec = tween(500),
@@ -47,7 +45,9 @@ class MainActivity : ComponentActivity() {
                     ) { screen ->
                         when (screen) {
                             "main" -> MainContent()
-                            "events" -> EventsScreen() // Должен быть в EventsScreen.kt
+                            "events" -> EventsScreen()
+                            "collections" -> CollectionsScreen(onBack = { currentScreen = "main" }) // НОВОЕ
+                            "works" -> WorksScreen(onBack = { currentScreen = "main" })
                         }
                     }
                 }
@@ -58,17 +58,10 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainContent() {
-    // Контент главного экрана (текст AniDate)
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(start = 96.dp, top = 40.dp)
-    ) {
+    Box(modifier = Modifier.fillMaxSize().padding(start = 96.dp, top = 40.dp)) {
         Text(
             text = stringResource(id = R.string.app_name),
-            color = Color.White,
-            fontSize = 32.sp,
-            fontWeight = FontWeight.Black
+            color = Color.White, fontSize = 32.sp, fontWeight = FontWeight.Black
         )
     }
 }
